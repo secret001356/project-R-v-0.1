@@ -1,0 +1,46 @@
+</head>
+<body>
+<nav>
+    <div class="brand"><font class="poweredby">Powered by</font> <font class="logo">TADA</font></div>
+    <div class="menu">
+{{#if user }}
+    <a href="/home">Home</a>
+    <a href="/profile">Profile</a>
+    <a href="/auth/logout">Logout</a>
+{{else}}
+    <a href="/register">Register</a>
+    <a href="/">Login</a>
+{{/if}}
+    </div>
+</nav>
+<hr>
+{{#if user }}
+{{{ routers }}}
+<hr>
+{{!-- <div class="curve_container">
+  <div class="curve_shape">
+    <span class="curve_text">This is a sample text for the curve.</span>
+  </div>
+</div> --}}
+
+ <div id="tabs-container">
+    <div class="tabs" id="tabs">
+      <!-- Dynamic tabs will be added here -->
+    </div>
+    <div class="tab-content" id="tab-content">
+      <!-- Content of the active tab will be shown here -->
+    </div>
+  </div>
+<div id="definite-container">
+{{/if}}
+{{#if msg}}
+  {{#if (eq msg_type "success")}}
+    <div class="custom-alert success-alert" role="alert">
+      {{msg}}
+    </div>
+  {{else}}
+    <div class="custom-alert error-alert" role="alert">
+      {{msg}}
+    </div>
+  {{/if}}
+{{/if}}

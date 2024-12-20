@@ -1,0 +1,43 @@
+<style>
+.alignment {
+    width: fit-content;
+    margin: 0 auto;
+}
+</style>
+
+{{> header }}
+{{> navbar }}
+{{> dtb }}
+{{> form }}
+<div class="snowdiv">
+    <div class="alignment">
+        <h2>Customer Master</h2>
+        {{createInput type="text" id="customername" placeholder="First Name" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="" }}
+        {{createInput type="text" id="customerlastname" placeholder="Last Name" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="" }}
+        {{createInput type="date" id="dob" placeholder="DOB" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="" }}
+        {{createInput type="number" id="number1" placeholder="Primary Number" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="" }}
+        {{createInput type="number" id="number2" placeholder="Secondary Number" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="" }}
+        {{createInputTa id="address" placeholder="Address" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="" }}
+        <button id="saveButton" type="button">Save</button>
+    </div>
+</div>
+{{> formend }}
+{{> view }}
+{{> viewend }}
+<script nonce="{{nonce}}">
+document.addEventListener('DOMContentLoaded', function () {
+    const saveButton = document.getElementById('saveButton');
+    
+    // Check if saveButton exists before adding the event listener
+    if (saveButton) {
+        saveButton.addEventListener('click', working);  // Attach 'working' function to the button click
+    }
+});
+
+function working()
+{
+    // alert("working");
+}
+</script>
+
+{{> footer }}

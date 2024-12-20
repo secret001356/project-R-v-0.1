@@ -1,0 +1,61 @@
+<style>
+.eye-icon {
+  top: 46%;
+  right: 30%;
+  position: fixed;
+  cursor: pointer;
+}
+.eye-icon2 {
+    top: 59%;
+    right: 30%;
+    position: fixed;
+    cursor: pointer;
+}
+</style>
+{{> header}}
+    {{> navbar }}
+    <div class="containeri">
+      <div class="text">Registration</div>
+      <form action="/auth/register" method="post">
+        {{createInput type="text" id="name" placeholder="Full Name" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="center-margin" }}<br>
+        {{createInput type="text" id="email" placeholder="Email" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="center-margin" }}<br>
+        {{createInput type="password" id="password" placeholder="Password" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="center-margin" }}
+        <span id="eyeIcon" class="eye-icon">👁️</span><br>
+        {{createInput type="password" id="confirm_password" placeholder="Confirm Password" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="center-margin" }}
+        <span id="eyeIcon2" class="eye-icon2">👁️</span><br>
+        <div class="btn">
+          <button type="submit">Register</button>
+        </div>
+        <div class="signup-link">
+          Already a member ? <a href="/">Login now</a>
+        </div>
+      </form>
+    </div>
+    {{> dtb }}
+    <script nonce="{{nonce}}">
+      const eyesIcon = document.getElementById('eyeIcon');
+      const eyesIcon2 = document.getElementById('eyeIcon2');
+    const passwordInput = document.getElementById('password');
+    const cpasswordInput = document.getElementById('confirm_password');
+
+    // Toggle the visibility of the password
+    eyesIcon.addEventListener('click', () => {
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text'; // Show the password
+        eyesIcon.textContent = '🙈'; // Change the icon to a "hide" symbol
+      } else {
+        passwordInput.type = 'password'; // Hide the password
+        eyesIcon.textContent = '👁️'; // Change the icon to a "show" symbol
+      }
+    });
+    eyesIcon2.addEventListener('click', () => {
+      if (cpasswordInput.type === 'password') {
+        cpasswordInput.type = 'text'; // Show the password
+        eyesIcon2.textContent = '🙈'; // Change the icon to a "hide" symbol
+      } else {
+        cpasswordInput.type = 'password'; // Hide the password
+        eyesIcon2.textContent = '👁️'; // Change the icon to a "show" symbol
+      }
+    });
+    </script>
+{{> footer }}

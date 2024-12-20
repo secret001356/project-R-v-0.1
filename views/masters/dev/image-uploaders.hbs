@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Webcam Capture and Crop</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
+  <style>
+    #image-container {
+      display: none;
+      margin-top: 20px;
+    }
+    .options {
+      margin-bottom: 20px;
+    }
+    #video-container {
+      position: relative;
+      display: none;
+      width: 100%;
+    }
+    #video {
+      width: 30%;
+      border: 1px solid black;
+    }
+    #capture-frame {
+      position: absolute;
+      border: 2px solid red;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .crop-shape-btn {
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    #drop-zone-for-image {
+      width: 100%;
+      height: 200px;
+      border: 2px dashed #ccc;
+      text-align: center;
+      line-height: 200px;
+      color: #999;
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    #drop-zone-for-image.over {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+    #file-input-for-image {
+      display: none;
+    }
+    .image-item {
+      position: relative;
+      display: inline-block;
+      margin: 10px;
+    }
+    .image-item img {
+      max-width: 200px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 5px;
+      right: 5px;
+      background: rgba(255, 0, 0, 0.7);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      padding: 5px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="options">
+    <input type="file" id="file-input-for-image" accept="image/*" multiple />
+    <button id="webcam-option">Access Webcam</button>
+  </div>
+
+  <!-- Drag-and-Drop Zone -->
+  <div id="drop-zone-for-image">Drag & Drop an Image Here</div>
+
+  <div id="video-container">
+    <video id="video" autoplay></video>
+    <button id="capture-button">Capture Image</button>
+    <button id="cancel-vide-button">Cancel</button>
+  </div>
+
+  <div id="image-container">
+    <!-- Shape Selection -->
+    <button id="rotate">Rotate</button>
+    <button class="crop-shape-btn" data-shape="square">Square</button>
+    <button class="crop-shape-btn" data-shape="circle">Circle</button>
+    <button class="crop-shape-btn" data-shape="rectangle">Rectangle</button>
+    <button class="crop-shape-btn" data-shape="ellipse">Ellipse</button>
+    <button id="cancel-crop-button">Cancel</button>
+    <img id="image" src="" alt="Captured Image" style="max-width: 100%;" />
+    <button id="crop">final</button>
+  </div>
+
+  <div id="image-gallery">
+    <!-- All cropped images will appear here -->
+  </div>
+
+  <canvas id="canvas" style="max-width: 100%; display: none; margin-top: 20px;"></canvas>
+
+  <script nonce="{{nonce}}" src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+  <script nonce="{{nonce}}">
+    let cropper;
+    let imageElement = document.getElementById('image');
+    let canvasElement = document.getElementById('canvas');
+    let imageContainer = document.getElementById('image-container');
+    let videoContainer = document.getElementById('video-container');
+    let dropZone = document.getElementById('drop-zone-for-image');
+    let videoElement = document.getElementById('video');
+    let captureFrame = document.getElementById('capture-frame');
+    let currentShape = 'square'; // Default shape
+    let file_input = document.getElementById('file-input-for-image');
+    let stream; 
+
+    // Access Webcam
+    document.getElementById('webcam-option').addEventListener('click', async () => {
+      try {
+        videoContainer.style.display='block';
+        dropZone.style.display="none";
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        videoElement.srcObject = stream;
+
+        // Wait for the video to load and then update the capture frame size
+        videoElement.onloadedmetadata = () => {
+          updateCaptureFrameSize();
+          videoElement.play();  // Ensure the video starts playing after metadata is loaded
+        };
+
+        // Ensure capture frame is updated if window size changes
+        window.addEventListener('resize', updateCaptureFrameSize);
+      } catch (error) {
+        alert("Unable to access webcam.");
+      }
+    });
+
+    // Update capture frame size to match video size
+    function updateCaptureFrameSize() {
+      if (videoElement && captureFrame) {
+        if (videoElement.videoWidth && videoElement.videoHeight) {
+          captureFrame.style.width = videoElement.videoWidth + 'px';
+          captureFrame.style.height = videoElement.videoHeight + 'px';
+        }
+      }
+    }
+// Function to stop the webcam stream
+    function stopWebcamStream() {
+      if (stream) {
+        const tracks = stream.getTracks(); // Get all tracks from the stream
+        tracks.forEach(track => track.stop());  // Stop each track
+        document.getElementById('video-container').style.display = 'none'; // Hide the video container
+      }
+    }
+    document.getElementById('cancel-crop-button').addEventListener('click', () => {
+    dropZone.style.display="block";
+    videoContainer.style.display='none';
+    imageContainer.style.display = "none";
+    // Reset file input value
+    file_input.value = '';
+  });
+  document.getElementById('cancel-vide-button').addEventListener('click', () => {
+    dropZone.style.display="block";
+    videoContainer.style.display='none';
+    stopWebcamStream();
+  });
+    // Capture Image on "Capture" button click
+    document.getElementById('capture-button').addEventListener('click', () => {
+      const videoWidth = videoElement.videoWidth;
+      const videoHeight = videoElement.videoHeight;
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      canvas.width = videoWidth;
+      canvas.height = videoHeight;
+
+      // Draw the video frame onto the canvas
+      context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+      // Convert the canvas image to base64 and set it to the image element
+      imageElement.src = canvas.toDataURL('image/jpeg');
+      imageContainer.style.display = 'block';
+      videoContainer.style.display='none';
+      initializeCropper(imageElement);
+      stopWebcamStream();
+    });
+
+    // Choose file option
+    document.getElementById('file-input-for-image').addEventListener('change', event => {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        imageElement.src = e.target.result;
+        imageContainer.style.display = 'block';
+        initializeCropper(imageElement);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Initialize the cropper
+    function initializeCropper(image) {
+      if (cropper) {
+        cropper.destroy();
+      }
+      cropper = new Cropper(image, {
+        aspectRatio: currentShape === 'square' ? 1 : NaN, // Default square aspect
+        viewMode: 2,
+        responsive: true,
+        guides: true,
+        cropBoxResizable: true,
+        dragMode: 'move',
+        minCropBoxWidth: 100,
+        minCropBoxHeight: 100,
+        ready() {
+          if (currentShape === 'circle' || currentShape === 'ellipse') {
+            image.style.borderRadius = currentShape === 'circle' ? '50%' : '30%'; // Apply rounded corners for circle or ellipse
+            cropper.cropBox.style.borderRadius = currentShape === 'circle' ? '50%' : '30%'; // Apply border-radius to the crop box
+            cropper.cropBox.style.overflow = 'hidden'; // Ensure content inside the crop box is clipped
+          }
+        },
+      });
+      dropZone.style.display = "none";
+    }
+
+    // Handle shape selection
+    document.querySelectorAll('.crop-shape-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        currentShape = e.target.getAttribute('data-shape');
+        // Reinitialize the cropper with the new shape
+        initializeCropper(imageElement);
+      });
+    });
+
+    // Rotate image
+    document.getElementById('rotate').addEventListener('click', () => {
+      if (cropper) {
+        cropper.rotate(90);
+      }
+    });
+
+    dropZone.addEventListener('click', () => {
+      // Reset file input value
+      file_input.value = '';
+      file_input.click();
+    });
+
+    // Crop image and add to gallery
+    document.getElementById('crop').addEventListener('click', () => {
+      if (cropper) {
+        const croppedCanvas = cropper.getCroppedCanvas();
+        let finalCanvas = croppedCanvas;
+
+        // If the selected shape is circle or ellipse, apply the mask
+        if (currentShape === 'circle' || currentShape === 'ellipse') {
+          finalCanvas = applyShapeMask(croppedCanvas);
+        }
+
+        addToGallery(finalCanvas);
+        canvasElement.width = finalCanvas.width;
+        canvasElement.height = finalCanvas.height;
+        const ctx = canvasElement.getContext('2d');
+        ctx.drawImage(finalCanvas, 0, 0);
+        dropZone.style.display = "block";
+        imageContainer.style.display = "none";
+      }
+    });
+
+    // Function to apply a circular or elliptical mask
+    function applyShapeMask(croppedCanvas) {
+      const maskCanvas = document.createElement('canvas');
+      const ctx = maskCanvas.getContext('2d');
+      const width = croppedCanvas.width;
+      const height = croppedCanvas.height;
+
+      maskCanvas.width = width;
+      maskCanvas.height = height;
+
+      // Create the circular or elliptical clipping path
+      ctx.beginPath();
+      if (currentShape === 'circle') {
+        ctx.arc(width / 2, height / 2, Math.min(width, height) / 2, 0, Math.PI * 2);
+      } else if (currentShape === 'ellipse') {
+        ctx.ellipse(width / 2, height / 2, width / 2, height / 2, 0, 0, Math.PI * 2);
+      }
+      ctx.clip();
+
+      // Draw the cropped image on the canvas with the mask applied
+      ctx.drawImage(croppedCanvas, 0, 0);
+      return maskCanvas;
+    }
+
+    // Function to add cropped image to the gallery
+    function addToGallery(croppedCanvas) {
+      const gallery = document.getElementById('image-gallery');
+      const imageItem = document.createElement('div');
+      imageItem.classList.add('image-item');
+
+      const img = document.createElement('img');
+      img.src = croppedCanvas.toDataURL('image/jpeg');
+      imageItem.appendChild(img);
+
+      // Add click event to allow the image to be re-cropped
+      img.addEventListener('click', () => {
+        imageElement.src = img.src;
+        imageContainer.style.display = 'block';
+        initializeCropper(imageElement);
+      });
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.classList.add('delete-btn');
+      deleteBtn.textContent = 'X';
+      deleteBtn.onclick = () => imageItem.remove();
+      imageItem.appendChild(deleteBtn);
+
+      gallery.appendChild(imageItem);
+    }
+
+    // Drag and Drop event listeners
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('over');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('over');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          imageElement.src = event.target.result;
+          imageContainer.style.display = 'block';
+          initializeCropper(imageElement);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        alert('Please drop a valid image file.');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<% if (!isRoot) { %>
+    <ul class="submenu">
+  <% } %>
+    <% 
+      // Separate files and folders
+      const files = folderStructure.filter(item => item.type === 'file' && item.name.endsWith('.hbs'));
+      const folders = folderStructure.filter(item => item.type === 'folder');
+    %>
+  
+    <!-- Render files first -->
+    <% files.forEach(item => { %>
+      <li class="file">
+  <!-- Split the path at 'masters', take the part after 'masters', and append '/masters' to the href -->
+  <a href="/masters<%= item.path.split('masters')[1].replace('.hbs', '').replace(/\\/g, '/') %>">
+    <span><%= item.name.replace(/-/g, ' ').replace('.hbs', '') %></span> <!-- Replace hyphens with spaces and remove .hbs -->
+  </a>
+</li>
+<hr>
+    <% }) %>
+  
+    <!-- Render folders next -->
+    <% folders.forEach(item => { %>
+      <li class="folder">
+        <span><%= item.name.replace(/-/g, ' ').replace('.hbs', '') %></span> <!-- Replace hyphens with spaces -->
+        <% if (item.children && item.children.length > 0) { %>
+          <%- include('folder', { folderStructure: item.children, isRoot: false }) %>
+        <% } %>
+      </li>
+    <% }) %>
+  
+  <% if (!isRoot) { %>
+    </ul>
+  <% } %>
+  

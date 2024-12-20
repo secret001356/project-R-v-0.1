@@ -1,0 +1,48 @@
+<style>
+.eye-icon {
+  top: 43%;
+  right: 30%;
+  position: fixed;
+  cursor: pointer;
+}
+</style>
+
+{{> header}}
+    {{> navbar }}
+    {{> dtb }}
+    <div class="containeri">
+      <div class="text">User Login</div>
+      <form action="/auth/login" method="post"><br>
+        {{createInput type="text" id="email" placeholder="Email" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="center-margin" }}
+        <br>
+        {{createInput type="password" id="password" placeholder="Password" className="" onClick="" onKeyUp="" othersForInput="" othersForPlaceHolder="" othersForDiv="center-margin" }}
+        <span id="eyeIcon" class="eye-icon">👁️</span><br><div class="forgot-pass">
+          <a href="#">Forgot Password?</a>
+        </div>
+        <div class="btn">
+          <button type="submit">login</button>
+        </div>
+        <div class="signup-link">
+          Not a member? <a href="/register">Signup now</a>
+        </div>
+      </form>
+    </div>
+    <script nonce="{{nonce}}">
+      const eyesIcon = document.getElementById('eyeIcon');
+    const passwordsInput = document.getElementById('password');
+
+    // Toggle the visibility of the password
+    eyesIcon.addEventListener('click', () => {
+      if (passwordsInput.type === 'password') {
+        passwordsInput.type = 'text'; // Show the password
+        eyesIcon.textContent = '🙈'; // Change the icon to a "hide" symbol
+      } else {
+        passwordsInput.type = 'password'; // Hide the password
+        eyesIcon.textContent = '👁️'; // Change the icon to a "show" symbol
+      }
+    });
+    localStorage.setItem("datatable_page","");
+    localStorage.setItem("datatables_state","");
+    localStorage.setItem("pages","");
+    </script>
+{{> footer }}
