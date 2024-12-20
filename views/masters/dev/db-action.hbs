@@ -55,6 +55,7 @@ function backEndCall_delete_table(val)
     const insert_datas = JSON.stringify({ tableName, data });
     backEndCall(undefined,'/db-action/createTable', 'POST',undefined,datas);
     backEndCall(undefined,'/db-action/insert', 'POST',undefined,insert_datas);
+    console.log("i");
   });
 
 document.addEventListener('DOMContentLoaded', () => {
